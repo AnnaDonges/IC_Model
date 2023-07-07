@@ -6,7 +6,7 @@ import networkx as nx
 def reading_of_data():
 
     # read in the data
-    movie_reviews = pd.read_csv('Ratings.timed.csv', index_col='date', parse_dates=True).sort_values('date')
+    movie_reviews = pd.read_csv('RatingShort.timed.csv', index_col='date', parse_dates=True).sort_values('date')
     movie_reviews_index = (movie_reviews.copy(deep=True)).reset_index(drop=True)
     network = pd.read_csv('network.txt', delimiter='  ', names=['origin', 'friend'], engine='python')
 
