@@ -6,7 +6,7 @@ import networkx as nx
 def reading_of_data():
 
     # read in the data
-    movie_reviews = pd.read_csv('RatingShort.timed.csv', index_col='date', parse_dates=True).sort_values('date')
+    movie_reviews = pd.read_csv('Ratings.timed.csv', index_col='date', parse_dates=True).sort_values('date')
     movie_reviews_index = (movie_reviews.copy(deep=True)).reset_index(drop=True)
     network = pd.read_csv('network.txt', delimiter='  ', names=['origin', 'friend'], engine='python')
 
@@ -126,6 +126,31 @@ def reading_of_data():
     plt.title('Connectivity Graph')
     plt.axis('off')
     plt.show()
+
+    
+    G = nx.Graph()
+
+    # Add nodes to the graph
+    G.add_nodes_from(result['origin'])
+    G.add_nodes_from(result['friend'])
+
+    # Add edges between origin and friend nodes with weights
+    edges = result[['origin', 'friend', 'p*_v2u']].values.tolist()
+    G.add_weighted_edges_from(edges)
+
+    # Create minimum spanning tree graph
+    mst = nx.minimum_spanning_tree(G)
+
+    # Plot the minimum spanning tree graph
+    plt.figure(figsize=(10, 8))
+    pos = nx.spring_layout(mst, seed=42)  # Layout algorithm to position the nodes
+    nx.draw_networkx_nodes(mst, pos, node_color='lightblue', node_size=200, alpha=0.7)
+    nx.draw_networkx_edges(mst, pos, edge_color='gray', alpha=0.5)
+    nx.draw_networkx_labels(mst, pos, font_color='black', font_size=8)
+    plt.title('Minimum Spanning Tree Graph')
+    plt.axis('off')
+    plt.show()
+    print('hello world')
 if __name__ == "__main__":
     reading_of_data()
 
