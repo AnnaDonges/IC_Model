@@ -1,7 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
-
+import networkx as nx
 
 def reading_of_data():
 
@@ -107,6 +107,29 @@ def reading_of_data():
     plt.yscale('log')
     plt.savefig('q3_3.png')
 
+
+    G = nx.Graph()
+
+    # Add nodes to the graph
+    G.add_nodes_from(network['origin'])
+    G.add_nodes_from(network['friend'])
+
+    # Add edges between origin and friend nodes
+    edges = network[['origin', 'friend']].values.tolist()
+    G.add_edges_from(edges)
+
+    # Set node colors
+    node_colors = ['red' if node in network['origin'] else 'lightblue' for node in G.nodes()]
+
+    # Plot the graph
+    plt.figure(figsize=(10, 8))
+    pos = nx.spring_layout(G, seed=42)  # Layout algorithm to position the nodes
+    nx.draw_networkx_nodes(G, pos, node_color=node_colors, node_size=200, alpha=0.7)
+    nx.draw_networkx_edges(G, pos, edge_color='gray', alpha=0.5)
+    nx.draw_networkx_labels(G, pos, font_color='black', font_size=8)
+    plt.title('Connectivity Graph')
+    plt.axis('off')
+    plt.show()
 
 if __name__ == "__main__":
     reading_of_data()
