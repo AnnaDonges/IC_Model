@@ -4,18 +4,33 @@ import numpy as np
 import networkx as nx
 
 def reading_of_data():
+    # Set the random seed for reproducibility
+    np.random.seed(42)
 
     # read in the data
     movie_reviews = pd.read_csv('Ratings.timed.csv', index_col='date', parse_dates=True).sort_values('date')
-    movie_reviews_index = (movie_reviews.copy(deep=True)).reset_index(drop=True)
+    movie_reviews_index = movie_reviews.reset_index(drop=True)
     network = pd.read_csv('network.txt', delimiter='  ', names=['origin', 'friend'], engine='python')
 
     network_for_printing = network.copy(deep=True)
 
+    # Set the percentage of data to use (10%)
+    data_percentage = 0.4
+
+    # Reduce the dataset size
+    unique_reviewers = movie_reviews['userid'].unique()
+    num_reviewers = len(unique_reviewers)
+    num_reviewers_to_use = int(num_reviewers * data_percentage)
+    random_reviewers = np.random.choice(unique_reviewers, size=num_reviewers_to_use, replace=False)
+
+    movie_reviews = movie_reviews[movie_reviews['userid'].isin(random_reviewers)]
+    network = network[network['origin'].isin(random_reviewers)]
+    network = network[network['friend'].isin(random_reviewers)]
+
     # set final dataframe with origin and number of friends
     full_origin_list_friends = network.groupby('origin')['friend'].unique()
     full_origin_list = full_origin_list_friends.index.tolist()
-    full_origin_list_friend_count = full_origin_list_friends.str.len()
+    full_origin_list_friend_count = full_origin_list_friends.apply(len)
 
     # preprocessing - reducing input data set size
     # only people who have been infected must have gotten it from someone else who has reviewed a movie
@@ -84,7 +99,7 @@ def reading_of_data():
     infection = infection.to_frame()
     infection.stack().reset_index()
 
-    origin_review_count = group_by_origin_movies.str.len()
+    origin_review_count = group_by_origin_movies.apply(len)
     origin_review_count = origin_review_count.rename_axis('origin')
 
     result = network_for_printing.join(origin_review_count.to_frame(), on=['origin'])
@@ -95,7 +110,7 @@ def reading_of_data():
     result = result.fillna(0)
 
     result['p*_v2u'] = result['A_v2u'] / result['p*_v2u']
-    result = result.fillna(0)
+    result= result.fillna(0)
     result = result.drop(['A_v2u'], axis=1)
 
     result.to_csv('q3_2.txt', index=False)
@@ -107,36 +122,40 @@ def reading_of_data():
     plt.yscale('log')
     plt.savefig('q3_3.png')
 
+    # Create a graph object
     G = nx.Graph()
 
     # Add nodes to the graph
-    G.add_nodes_from(result['origin'])
-    G.add_nodes_from(result['friend'])
+    G.add_nodes_from(network['origin'])
+    G.add_nodes_from(network['friend'])
 
     # Add edges between origin and friend nodes
-    edges = result[['origin', 'friend']].values.tolist()
+    edges = network[['origin', 'friend']].values.tolist()
     G.add_edges_from(edges)
+
+    # Set node colors
+    node_colors = ['red' if node in network['origin'] else 'lightblue' for node in G.nodes()]
 
     # Plot the graph
     plt.figure(figsize=(10, 8))
     pos = nx.spring_layout(G, seed=42)  # Layout algorithm to position the nodes
-    nx.draw_networkx_nodes(G, pos, node_color='lightblue', node_size=200, alpha=0.7)
+    nx.draw_networkx_nodes(G, pos, node_color=node_colors, node_size=200, alpha=0.7)
     nx.draw_networkx_edges(G, pos, edge_color='gray', alpha=0.5)
     nx.draw_networkx_labels(G, pos, font_color='black', font_size=8)
     plt.title('Connectivity Graph')
     plt.axis('off')
     plt.show()
 
-    
+
     G = nx.Graph()
 
     # Add nodes to the graph
-    G.add_nodes_from(result['origin'])
-    G.add_nodes_from(result['friend'])
+    G.add_nodes_from(network['origin'])
+    G.add_nodes_from(network['friend'])
 
     # Add edges between origin and friend nodes with weights
-    edges = result[['origin', 'friend', 'p*_v2u']].values.tolist()
-    G.add_weighted_edges_from(edges)
+    edges = network[['origin', 'friend']].values.tolist()
+    G.add_edges_from(edges)
 
     # Create minimum spanning tree graph
     mst = nx.minimum_spanning_tree(G)
@@ -150,9 +169,10 @@ def reading_of_data():
     plt.title('Minimum Spanning Tree Graph')
     plt.axis('off')
     plt.show()
-    print('hello world')
+
 if __name__ == "__main__":
     reading_of_data()
+
 
     # infection.sort_index(ascending=True, inplace=True)
 
