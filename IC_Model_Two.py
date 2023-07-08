@@ -108,26 +108,28 @@ def reading_of_data():
     plt.savefig('q3_3.png')
 
 
+       # Create a graph object
+    # Create a graph object
     G = nx.Graph()
 
     # Add nodes to the graph
-    G.add_nodes_from(network['origin'])
-    G.add_nodes_from(network['friend'])
+    G.add_nodes_from(result['origin'])
+    G.add_nodes_from(result['friend'])
 
-    # Add edges between origin and friend nodes
-    edges = network[['origin', 'friend']].values.tolist()
-    G.add_edges_from(edges)
+    # Add edges between origin and friend nodes with weights
+    edges = result[['origin', 'friend', 'p*_v2u']].values.tolist()
+    G.add_weighted_edges_from(edges)
 
-    # Set node colors
-    node_colors = ['red' if node in network['origin'] else 'lightblue' for node in G.nodes()]
+    # Create minimum spanning tree graph
+    mst = nx.minimum_spanning_tree(G)
 
-    # Plot the graph
+    # Plot the minimum spanning tree graph
     plt.figure(figsize=(10, 8))
-    pos = nx.spring_layout(G, seed=42)  # Layout algorithm to position the nodes
-    nx.draw_networkx_nodes(G, pos, node_color=node_colors, node_size=200, alpha=0.7)
-    nx.draw_networkx_edges(G, pos, edge_color='gray', alpha=0.5)
-    nx.draw_networkx_labels(G, pos, font_color='black', font_size=8)
-    plt.title('Connectivity Graph')
+    pos = nx.spring_layout(mst, seed=42)  # Layout algorithm to position the nodes
+    nx.draw_networkx_nodes(mst, pos, node_color='lightblue', node_size=200, alpha=0.7)
+    nx.draw_networkx_edges(mst, pos, edge_color='gray', alpha=0.5)
+    nx.draw_networkx_labels(mst, pos, font_color='black', font_size=8)
+    plt.title('Minimum Spanning Tree Graph')
     plt.axis('off')
     plt.show()
 
